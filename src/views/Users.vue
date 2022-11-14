@@ -4,17 +4,21 @@
 
     <el-table
       :data="users"
-      style="width: 100%">
+      style="width: 100%"
+    >
+
       <el-table-column
         prop="name"
         label="Name"
         width="180">
       </el-table-column>
+
       <el-table-column
         prop="username"
         label="Username"
         width="180">
       </el-table-column>
+
       <el-table-column
         prop="email"
         label="Email">
@@ -25,7 +29,7 @@
         <template slot-scope="scope">
           <el-button
             size="mini"
-            @click="viewDetails(scope.$index, scope.row)">View Details</el-button>
+            @click="viewDetails(scope.row)">View Details</el-button>
           <el-button
             size="mini"
             type="danger"
@@ -34,14 +38,29 @@
       </el-table-column>
       
     </el-table>
+    <el-dialog
+      title="User Info"
+      :visible.sync="dialogVisible"
+      width="30%"
+    >
+      <span v-for="(d, index) in selectedUser" :key="index">
+        <p>{{ d.key }}: {{ d.value }}</p>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogVisible = false">Close</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import jsonUtils from "@/utils/jsonUtils"
 export default {
   name: 'Users',
   data () {
     return {
+      dialogVisible: false,
+      selectedUser: "",
       users: []
     }
   },
@@ -55,11 +74,19 @@ export default {
         this.users = response.data
       })
       .catch(error => {
-        console.log("🚀 ~ file: Users.vue ~ line 21 ~ getUsers ~ error", error)
+        console.log("🚀 ~ file: Users.vue ~ getUsers ~ error", error)
       })
     },
-    viewDetails(user) {
+
+    viewDetails(row) {
+      try {
+        this.selectedUser = jsonUtils.getNested(row, [])
+        this.dialogVisible = true
+      } catch (error) {
+        console.log("🚀 ~ file: Users.vue ~ viewDetails ~ error", error)
+      }
     },
+    
     deleteUser(userId) {
       this.$http.delete(`${process.env.VUE_APP_BASE_URL}${'users'}/${userId}`)
       .then(response => {
